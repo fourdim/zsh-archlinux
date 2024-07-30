@@ -83,6 +83,47 @@ fi
 cat >| "${ZINIT[COMPLETIONS_DIR]:-$ZSH_CACHE_DIR/completions}/_pac" <<'EOF'
 #compdef pac
 
+# builds command for invoking pacman in a _call_program command - extracts
+# relevant options already specified (config file, etc)
+# $cmd must be declared by calling function
+_pacman_get_command() {
+	# this is mostly nicked from _perforce
+	cmd=( "pacman" "2>/dev/null")
+	integer i
+	for (( i = 2; i < CURRENT - 1; i++ )); do
+		if [[ ${words[i]} = "--config" || ${words[i]} = "--root" ]]; then
+			cmd+=( ${words[i,i+1]} )
+		fi
+	done
+}
+
+_pacman_completions_all_packages() {
+	local -a seq sep cmd packages repositories packages_long
+	_pacman_get_command
+
+	if [[ ${words[CURRENT-1]} == '--ignore' ]]; then
+		seq='_sequence'
+		sep=(-S ',')
+	else
+		seq=
+		sep=()
+	fi
+
+	if compset -P1 '*/*'; then
+		packages=( $(_call_program packages $cmd[@] -Sql ${words[CURRENT]%/*}) )
+		typeset -U packages
+		${seq} _wanted repo_packages expl "repository/package" compadd ${sep[@]} ${(@)packages}
+	else
+		packages=( $(_call_program packages $cmd[@] -Sql) )
+		typeset -U packages
+		${seq} _wanted packages expl "packages" compadd ${sep[@]} - "${(@)packages}"
+
+		repositories=($(pacman-conf --repo-list))
+		typeset -U repositories
+		_wanted repo_packages expl "repository/package" compadd -S "/" $repositories
+	fi
+}
+
 # provides completions for installed packages
 _pacman_completions_installed_packages() {
 	local -a cmd packages packages_long
@@ -116,6 +157,9 @@ case $state in
 ;;
 *)
     case "$com" in
+        (add)
+            _arguments '*:package:_pacman_completions_all_packages'
+        ;;
         (remove)
             _arguments '*:package:_pacman_completions_installed_packages'
         ;;
