@@ -75,12 +75,7 @@ function pac() {
 # If the completion file doesn't exist yet, we need to autoload it and
 # bind it to `pac`. Otherwise, compinit will have already done that.
 if [[ ! -f "${ZINIT[COMPLETIONS_DIR]:-$ZSH_CACHE_DIR/completions}/_pac" ]]; then
-  typeset -g -A _comps
-  autoload -Uz _pac
-  _comps[pac]=_pac
-fi
-
-cat >| "${ZINIT[COMPLETIONS_DIR]:-$ZSH_CACHE_DIR/completions}/_pac" <<'EOF'
+  cat >| "${ZINIT[COMPLETIONS_DIR]:-$ZSH_CACHE_DIR/completions}/_pac" <<'EOF'
 #compdef pac
 
 # builds command for invoking pacman in a _call_program command - extracts
@@ -180,3 +175,8 @@ case $state in
 esac
 
 EOF
+
+  typeset -g -A _comps
+  autoload -Uz _pac
+  _comps[pac]=_pac
+fi
