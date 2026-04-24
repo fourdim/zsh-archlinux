@@ -76,5 +76,5 @@ function pac() {
     esac
 }
 
-fpath=("${0:A:h}" $fpath)
+fpath+=("${0:A:h}")
 autoload -Uz _pac
