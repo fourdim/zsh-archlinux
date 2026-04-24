@@ -77,3 +77,4 @@ function pac() {
 }
 
 fpath=("${0:A:h}" $fpath)
+autoload -Uz _pac
